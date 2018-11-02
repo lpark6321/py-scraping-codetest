@@ -29,30 +29,20 @@ def parse(html):
     page_urls = set([urljoin(base_url, url['href']) for url in urls])   # 去重
     url = soup.find('meta', {'property': "og:url"})['content']
     return title, page_urls, url
+
+def multicore():
+    pool = mp.Pool(processes=1) # 定义CPU核数量为3
+    res = pool.map(job, range(10))
+    print(res)
+    multi_res = [pool.apply_async(job, (i,))for i in range(10)]
+    # 用get获得结果
+    print([res.get()for res in multi_res])
+def job(x):
+    return x*x
+
 '''++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++'''
 if __name__ == '__main__':
-    if not os.path.isdir('novels'):  # n資料夾是否存在
-        os.mkdir('novels')
-    os.chdir('novels')
-    scale = 50
-    print("执行开始".center(scale // 2, "-"))
     start = time.perf_counter()
-
-    for n in range(2473,2476):
-        try:
-            url='https://www.wenku8.net/novel/'+str(int(n/1000))+'/'+str(n)+'/index.htm'
-            resp = get_web_page(url)
-            name,novels = get_novel(resp)   #標題 作者 與章節+超連結
-            n_name='_'.join(name)
-            if not os.path.isdir(n_name):   #n資料夾是否存在
-                os.mkdir(n_name)    #創建資料夾
-            add =  n_name +'/'   #下載地址os.getcwd() +'/' +
-            for d in novels:
-                download(n, d, add) #開載
-            when(n,name[0])
-        except Exception as e:
-            Error_log = []
-            Error_log.append(e)
-            print(e)
-    #[\*?？"<>!][／/:, -]
-    print('\n'+"执行结果".center(scale // 2, '-'))
+    multicore()
+    dur = time.perf_counter() - start  # 计时，计算进度条走到某一百分比的用时
+    print("已花費{:.2f}s".format(dur))
